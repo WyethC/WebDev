@@ -1,8 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>MadLibs</title>
+  <meta charset="UTF-8">
+  <title>MadLibs</title>
+  <style>
+    input.error {
+      border: 2px solid red;
+    }
+    #error-msg {
+      color: red;
+      display: none;
+    }
+  </style>
 </head>
 <body>
 <h1>MadLibs</h1>
@@ -16,53 +25,49 @@
   <p>Adjective: <input type="text" id="place_input5"></p>
   <p>Verb: <input type="text" id="place_input6"></p>
   <p>Noun: <input type="text" id="place_input7"></p>
+  <p id="error-msg">Please fill in all fields before submitting!</p>
   <button onclick="madlibs()">Submit</button>
-
 </div>
 
-<div id="results">
-  <p>I had a dog named <span id="place_output1">(Proper Noun)</span> who would never <span id="place_output2">(verb)</span>. I decided to take him to the <span id="place_output3">(place)</span>. They told me he had the <span id="place_output4">(plural noun)</span>. I was so <span id="place_output5">(adjective)</span> that I <span id="place_output6">(verb)</span> home. After all of that seeing my <span id="place_output7">(noun)</span> was the best thing ever. </p>
+<div id="results" style="display:none">
+  <p>I had a dog named <span id="place_output1">(Proper Noun)</span> who would never <span id="place_output2">(verb)</span>. I decided to take him to the <span id="place_output3">(place)</span>. They told me he had the <span id="place_output4">(plural noun)</span>. I was so <span id="place_output5">(adjective)</span> that I <span id="place_output6">(verb)</span> home. After all of that seeing my <span id="place_output7">(noun)</span> was the best thing ever.</p>
 </div>
 
 </body>
 <script>
-  function madlibs(){
+  function madlibs() {
+    const inputs = [
+      "place_input1", "place_input2", "place_input3", "place_input4",
+      "place_input5", "place_input6", "place_input7"
+    ];
 
-    let place_input1 = document.getElementById("place_input1");
-    document.getElementById('place_output1').innerHTML = place_input1.value;
-    console.log(place_input1);
-    console.log(place_input1.value);
+    // Clear previous error styling
+    inputs.forEach(id => document.getElementById(id).classList.remove("error"));
 
-    let place_input2 = document.getElementById("place_input2");
-    document.getElementById('place_output2').innerHTML = place_input2.value;
-    console.log(place_input2);
-    console.log(place_input2.value);
+    // Check for empty fields
+    let allFilled = true;
+    inputs.forEach(id => {
+      if (document.getElementById(id).value.trim() === "") {
+        document.getElementById(id).classList.add("error");
+        allFilled = false;
+      }
+    });
 
-    let place_input3 = document.getElementById("place_input3");
-    document.getElementById('place_output3').innerHTML = place_input3.value;
-    console.log(place_input3);
-    console.log(place_input3.value);
+    if (!allFilled) {
+      document.getElementById("error-msg").style.display = "block";
+      return;
+    }
 
-    let place_input4 = document.getElementById("place_input4");
-    document.getElementById('place_output4').innerHTML = place_input4.value;
-    console.log(place_input4);
-    console.log(place_input4.value);
+    // Hide error message and populate results
+    document.getElementById("error-msg").style.display = "none";
 
-    let place_input5 = document.getElementById("place_input5");
-    document.getElementById('place_output5').innerHTML = place_input5.value;
-    console.log(place_input5);
-    console.log(place_input5.value);
+    for (let i = 1; i <= 7; i++) {
+      document.getElementById("place_output" + i).innerHTML =
+              document.getElementById("place_input" + i).value;
+    }
 
-    let place_input6 = document.getElementById("place_input6");
-    document.getElementById('place_output6').innerHTML = place_input6.value;
-    console.log(place_input6);
-    console.log(place_input6.value);
-
-    let place_input7 = document.getElementById("place_input7");
-    document.getElementById('place_output7').innerHTML = place_input7.value;
-    console.log(place_input7);
-    console.log(place_input7.value);
-
+    document.getElementById("entry").style.display = "none";
+    document.getElementById("results").style.display = "block";
   }
 </script>
 </html>
