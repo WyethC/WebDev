@@ -1,0 +1,138 @@
+Todo · HTML
+Copy
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>To Do</title>
+</head>
+<body>
+<h1>Wyeths List</h1>
+<h2>Add a task</h2>
+<label for="task">Task Name: </label><input id="task" type="text" placeholder="task name...">
+<button id="add" onclick="new_task()">Add</button>
+
+<h2>Tasks</h2>
+<div id="task_list"></div>
+</body>
+
+<style>
+    div.task > input {
+        margin-right: 15px;
+    }
+
+    #task_list {
+        margin-left: 25px;
+    }
+
+    div.task {
+        background-color: white;
+        width: 80%;
+        margin-bottom: 10px;
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    input[type='checkbox']:checked + span {
+        color: #7e0707;
+        text-decoration: line-through;
+    }
+
+    div.task:has(input[type='checkbox']:checked) {
+        background-color: #88dd6e;
+    }
+
+    div.task:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+
+<script>
+    // ── Cookie helpers ──────────────────────────────────────────────
+    function setCookie(cname, cvalue, exdays) {
+        const d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        document.cookie = cname + "=" + encodeURIComponent(cvalue) + ";expires=" + d.toUTCString() + ";path=/";
+    }
+
+    function getCookie(cname) {
+        const name = cname + "=";
+        const parts = document.cookie.split(';');
+        for (let part of parts) {
+            let c = part.trim();
+            if (c.startsWith(name)) return decodeURIComponent(c.substring(name.length));
+        }
+        return "";
+    }
+
+    // ── Task state ──────────────────────────────────────────────────
+    // Stored as JSON array of { name, checked } objects, kept for 365 days
+    function loadTasks() {
+        const raw = getCookie("tasks");
+        if (!raw) return [];
+        try { return JSON.parse(raw); } catch { return []; }
+    }
+
+    function saveTasks() {
+        const divs = document.querySelectorAll(".task");
+        const tasks = Array.from(divs).map(div => ({
+            name:    div.querySelector(".task_name").innerText,
+            checked: div.querySelector("input[type='checkbox']").checked
+        }));
+        setCookie("tasks", JSON.stringify(tasks), 365);
+    }
+
+    // ── DOM helpers ─────────────────────────────────────────────────
+    function render_task(name, checked = false) {
+        const new_div = document.createElement("div");
+        new_div.className = "task";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = checked;
+        checkbox.addEventListener("change", saveTasks);   // save on (un)check
+        new_div.appendChild(checkbox);
+
+        const new_span = document.createElement("span");
+        new_span.className = "task_name";
+        new_span.innerText = name;
+        new_div.appendChild(new_span);
+
+        const trash = document.createElement("span");
+        trash.className = "trash";
+        trash.innerText = "🗑️";
+        trash.style.float = "right";
+        trash.style.cursor = "pointer";
+        trash.addEventListener("click", delete_task);
+        new_div.appendChild(trash);
+
+        document.getElementById("task_list").appendChild(new_div);
+    }
+
+    function new_task() {
+        const task_input = document.getElementById('task');
+        const task_name  = task_input.value.trim();
+        if (!task_name) return;
+
+        render_task(task_name, false);
+        saveTasks();
+
+        task_input.value = "";
+        task_input.focus();
+    }
+
+    function delete_task(e) {
+        e.target.closest(".task").remove();
+        saveTasks();                                       // save after deletion
+    }
+
+    // Allow pressing Enter to add a task
+    document.getElementById('task').addEventListener('keydown', e => {
+        if (e.key === 'Enter') new_task();
+    });
+
+    // ── Boot: restore saved tasks ───────────────────────────────────
+    loadTasks().forEach(t => render_task(t.name, t.checked));
+</script>
+</html>
