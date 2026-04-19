@@ -3,55 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <title>To Do</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #1c90a5;
+            margin: 25px;
+        }
+
+        div.task > input {
+            margin-right: 15px;
+        }
+
+        #task_list {
+            margin-left: 25px;
+        }
+
+        div.task {
+            background-color: white;
+            width: 90%;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .task-meta {
+            display: block;
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 4px;
+            margin-left: 30px;
+        }
+
+        .task-meta.overdue {
+            color: #d53030;
+            font-weight: bold;
+        }
+
+        input[type='checkbox']:checked + span {
+            color: #d53030;
+            text-decoration: line-through;
+        }
+
+        div.task:has(input[type='checkbox']:checked) {
+            background-color: #4cbc28;
+        }
+
+        div.task:has(input[type='checkbox']:checked) {
+            color: #2a7a10;
+        }
+
+        div.task:hover {
+            background-color: #605a5a;
+        }
+
+        div.task:hover .task-meta {
+            color: #ccc;
+        }
+    </style>
 </head>
 <body>
 <h1>Wyeth To-Do List</h1>
 <h2>Add a task and time</h2>
 <label for="task">Task Name: </label><input id="task" type="text" placeholder="task name">
 
-<label for="task:time">Task Due date: </label><input id="task:time" type="datetime-local" placeholder="date: MM/DD/YYYY">
+<label for="task-time">Task Due date: </label><input id="task-time" type="datetime-local">
 <button id="add" onclick="new_task()">Add</button>
 
 <h2>Tasks</h2>
 <div id="task_list"></div>
 </body>
-
-<style>
-    body {
-        font-family: Arial, Helvetica, sans-serif;
-        background-color: #1c90a5;
-        margin: 25px;
-    }
-
-    div.task > input {
-        margin-right: 15px;
-    }
-
-    #task_list {
-        margin-left: 25px;
-    }
-
-    div.task {
-        background-color: white;
-        width: 90%;
-        margin-bottom: 10px;
-        padding: 15px;
-        border-radius: 10px;
-    }
-
-    input[type='checkbox']:checked + span {
-        color: #d53030;
-        text-decoration: line-through;
-    }
-
-    div.task:has(input[type='checkbox']:checked) {
-        background-color: #4cbc28;
-    }
-
-    div.task:hover {
-        background-color: #605a5a;
-    }
-</style>
 
 <script>
     function setCookie(cname, cvalue, exdays) {
@@ -74,20 +94,36 @@
         return "";
     }
 
+    function formatDateTime(isoString) {
+        if (!isoString) return "";
+        const date = new Date(isoString);
+        return date.toLocaleString([], {
+            month: 'short', day: 'numeric', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    function isOverdue(isoString) {
+        if (!isoString) return false;
+        return new Date(isoString) < new Date();
+    }
 
     function save_tasks() {
         let tasks = [];
         document.querySelectorAll("#task_list .task").forEach(div => {
             let name = div.querySelector(".task_name").innerText;
             let checked = div.querySelector("input[type='checkbox']").checked;
-            tasks.push(name + ":" + (checked ? "1" : "0"));
+            let due = div.dataset.due || "";
+            // Format: name||due||checked  (using || to avoid conflicts with colons in datetime)
+            tasks.push(name + "||" + due + "||" + (checked ? "1" : "0"));
         });
-        setCookie("tasks", tasks.join("|"), 15);
+        setCookie("tasks", tasks.join("|TASK|"), 15);
     }
 
-    function render_task(task_name, checked = false) {
+    function render_task(task_name, due_datetime, checked = false) {
         let new_div = document.createElement("div");
         new_div.className = "task";
+        new_div.dataset.due = due_datetime || "";
         document.getElementById("task_list").appendChild(new_div);
 
         let checkbox = document.createElement("input");
@@ -108,17 +144,29 @@
         trash.style.cursor = "pointer";
         trash.addEventListener("click", delete_task);
         new_div.appendChild(trash);
+
+        // Show due date if present
+        if (due_datetime) {
+            let meta = document.createElement("span");
+            meta.className = "task-meta" + (isOverdue(due_datetime) ? " overdue" : "");
+            meta.innerText = "Due: " + formatDateTime(due_datetime) + (isOverdue(due_datetime) ? " ⚠️ Overdue" : "");
+            new_div.appendChild(meta);
+        }
     }
 
     function new_task() {
         let task_input = document.getElementById('task');
+        let time_input = document.getElementById('task-time');
         let task_name = task_input.value.trim();
         if (task_name === "") return false;
 
-        render_task(task_name, false);
+        let due = time_input.value;
+
+        render_task(task_name, due, false);
         save_tasks();
 
         task_input.value = "";
+        time_input.value = "";
         task_input.focus();
     }
 
@@ -127,20 +175,26 @@
         save_tasks();
     }
 
-
     document.getElementById('task').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') new_task();
     });
 
     let saved = getCookie("tasks");
     if (saved) {
-        saved.split("|").forEach(entry => {
+        saved.split("|TASK|").forEach(entry => {
             if (!entry) return;
-
-            let lastColon = entry.lastIndexOf(":");
-            let name = entry.substring(0, lastColon);
-            let checked = entry.substring(lastColon + 1) === "1";
-            if (name) render_task(name, checked);
+            let parts = entry.split("||");
+            if (parts.length === 3) {
+                let name = parts[0];
+                let due = parts[1];
+                let checked = parts[2] === "1";
+                if (name) render_task(name, due, checked);
+            } else {d
+                let lastColon = entry.lastIndexOf(":");
+                let name = entry.substring(0, lastColon);
+                let checked = entry.substring(lastColon + 1) === "1";
+                if (name) render_task(name, "", checked);
+            }
         });
     }
 </script>
