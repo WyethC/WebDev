@@ -189,7 +189,7 @@
                 let due = parts[1];
                 let checked = parts[2] === "1";
                 if (name) render_task(name, due, checked);
-            } else {d
+            } else {
                 let lastColon = entry.lastIndexOf(":");
                 let name = entry.substring(0, lastColon);
                 let checked = entry.substring(lastColon + 1) === "1";

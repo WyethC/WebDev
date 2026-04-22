@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>How long since my birthday</title>
+    <style>
+    </style>
+</head>
+<body>
+<h1>Time Since My birth</h1>
+<div id="elapsed">--</div>
+<script>
+    const June23 = new Date('June 23, 2009 10:00:00');
+    function updateElapsed() {
+        const now = new Date();
+        let diff = Math.floor((now - June23) / 1000);
+        const years = Math.floor(diff / (365.25 * 24 * 3600));
+        diff -= years * Math.floor(365.25 * 24 * 3600);
+        const days = Math.floor(diff / (24 * 3600));
+        diff -= days * 24 * 3600;
+        const hours = Math.floor(diff / 3600);
+        diff -= hours * 3600;
+        const minutes = Math.floor(diff / 60);
+        const seconds = diff / 60;
+
+        document.getElementById('elapsed').textContent =
+            `${years} years, ${days} days, ${hours} hrs, ${minutes} min, ${seconds} sec`;
+    }
+    updateElapsed();
+    setInterval(updateElapsed, 1000);
+</script>
+</body>
+</html>
