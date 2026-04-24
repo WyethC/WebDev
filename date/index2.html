@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Time Until / Since Date</title>
+</head>
+<body>
+
+<h1>Time Until Date</h1>
+
+<input type="datetime-local" id="targetDate">
+<button onclick="setDate()">Add</button>
+
+<div id="elapsed">--</div>
+
+<script>
+    let target = null;
+
+    function setDate() {
+        const input = document.getElementById("targetDate").value;
+        target = new Date(input);
+    }
+
+    function updateElapsed() {
+        if (!target) return;
+
+        const now = new Date();
+        let diff = Math.floor((target - now) / 1000); // seconds
+
+        const isFuture = diff >= 0;
+        diff = Math.abs(diff);
+
+        const years = Math.floor(diff / (365.25 * 24 * 3600));
+        diff -= years * Math.floor(365.25 * 24 * 3600);
+
+        const days = Math.floor(diff / (24 * 3600));
+        diff -= days * 24 * 3600;
+
+        const hours = Math.floor(diff / 3600);
+        diff -= hours * 3600;
+
+        const minutes = Math.floor(diff / 60);
+        diff -= minutes * 60;
+
+        const seconds = diff;
+
+        document.getElementById('elapsed').textContent =
+            `${isFuture ? "Time until: " : "Time since: "}
+            ${years} years, ${days} days, ${hours} hrs, ${minutes} min, ${seconds} sec`;
+    }
+
+    setInterval(updateElapsed, 1000);
+</script>
+
+</body>
+</html>

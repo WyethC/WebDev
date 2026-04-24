@@ -21,6 +21,7 @@
         const hours = Math.floor(diff / 3600);
         diff -= hours * 3600;
         const minutes = Math.floor(diff / 60);
+        diff -= minutes * 600;
         const seconds = diff / 60;
 
         document.getElementById('elapsed').textContent =
