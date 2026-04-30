@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Caesar Cipher</title>
+</head>
+<body>
+<h1>Caesar Cipher</h1>
+<p> <label for="key">Enter a key: </label><input type="number" id="key" value="7"> </p>
+<p><label for="plaintext">Enter your message: </label><input type="text" id="plaintext"></p>
+<p><button id="encode" onclick="encode()">Encode</button></p>
+<p id="ciphertext"></p>
+
+</body>
+<script>
+  function encode() {
+    console.log("Encode")
+    let key = document.getElementById("key").value;
+    key = parseInt(key)
+    let plaintext = document.getElementById("plaintext").value;
+plaintext = plaintext.toUpperCase();
+let char="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      let ciphertext = "";
+
+      for (let i = 0; i < plaintext.length; i++) {
+          let newLocation = (char.indexOf(plaintext[i]) + key) % 26;
+          ciphertext += char[newLocation];
+      }
+
+      document.getElementById("ciphertext").innerText = "Encoded: " + ciphertext;
+  }
+
+</script>
+</html>
