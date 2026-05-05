@@ -6,11 +6,10 @@
 </head>
 <body>
 <h1>Wyeth Cipher</h1>
-<p> <label for="key">Enter a key: </label><input type="number" id="key" value="7"> </p>
+<p><label for="key">Enter a key: </label><input type="number" id="key" value=""></p>
 <p><label for="plaintext">Enter your message: </label><input type="text" id="plaintext"></p>
 <p><button id="encode" onclick="encode()">Encode</button></p>
 <p id="ciphertext"></p>
-
 </body>
 <script>
   function encode() {
@@ -27,8 +26,8 @@
         continue;
       }
 
-      let shift = (key + i) % 26;
-      let newLocation = (index + shift) % 26;
+      let shift = (key * i) % char.length;
+      let newLocation = (index + shift) % char.length;
 
       ciphertext += char[newLocation];
     }
