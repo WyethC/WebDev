@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fiscal Data API</title>
+</head>
+<body>
+
+<h1>Interest Rates</h1>
+<div id="output"></div>
+</body>
+<script>
+    let url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates";
+    fetch(url)
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not okay');
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            console.log(data);
+            let output = "";
+
+            data.data.forEach(function(item) {
+
+                output += `
+                    <div style="margin-bottom:20px;">
+                        <p><strong>Record Date:</strong> ${item.record_date}</p>
+                        <p><strong>Security Description:</strong> ${item.security_desc}</p>
+                        <p><strong>Average Interest Rate:</strong> ${item.avg_interest_rate_amt}%</p>
+                        <hr>
+                    </div>
+                `;
+            });
+
+            document.getElementById("output").innerHTML = output;
+        })
+        .catch(function(error) {
+            console.error(error);
+            document.getElementById("output").innerHTML =
+                "Error loading data.";
+        });
+</script>
+</html>
