@@ -1,45 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Fiscal Data API</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        select,
+        input,
+        button {
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+            cursor: pointer;
+        }
+
+        th:hover {
+            background-color: #e8e8e8;
+        }
+    </style>
 </head>
+
 <body>
 
 <h1>Interest Rates</h1>
-<div id="output"></div>
-</body>
+
+<div class="controls">
+    <input
+            type="text"
+            id="searchInput"
+            placeholder="Search security description..."
+    />
+
+    <select id="sortSelect">
+        <option value="record_date">Sort by Date</option>
+        <option value="security_desc">Sort by Security</option>
+        <option value="avg_interest_rate_amt">Sort by Interest Rate</option>
+    </select>
+
+    <button id="sortDirectionBtn">Ascending</button>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Record Date</th>
+        <th>Security Description</th>
+        <th>Average Interest Rate</th>
+    </tr>
+    </thead>
+    <tbody id="output"></tbody>
+</table>
+
 <script>
-    let url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates";
+    let url =
+        "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates";
+
+    let allData = [];
+    let ascending = true;
+
     fetch(url)
         .then(function(response) {
             if (!response.ok) {
-                throw new Error('Network response was not okay');
+                throw new Error("Network response was not okay");
             }
             return response.json();
         })
         .then(function(data) {
-            console.log(data);
-            let output = "";
-
-            data.data.forEach(function(item) {
-
-                output += `
-                    <div style="margin-bottom:20px;">
-                        <p><strong>Record Date:</strong> ${item.record_date}</p>
-                        <p><strong>Security Description:</strong> ${item.security_desc}</p>
-                        <p><strong>Average Interest Rate:</strong> ${item.avg_interest_rate_amt}%</p>
-                        <hr>
-                    </div>
-                `;
-            });
-
-            document.getElementById("output").innerHTML = output;
+            allData = data.data;
+            renderData();
         })
         .catch(function(error) {
             console.error(error);
             document.getElementById("output").innerHTML =
-                "Error loading data.";
+                "<tr><td colspan='3'>Error loading data.</td></tr>";
+        });
+
+    function renderData() {
+        let searchValue = document
+            .getElementById("searchInput")
+            .value.toLowerCase();
+
+        let sortField = document.getElementById("sortSelect").value;
+
+        let filteredData = allData.filter(function(item) {
+            return item.security_desc
+                .toLowerCase()
+                .includes(searchValue);
+        });
+
+        filteredData.sort(function(a, b) {
+
+            let valA = a[sortField];
+            let valB = b[sortField];
+
+            if (sortField === "avg_interest_rate_amt") {
+                valA = parseFloat(valA);
+                valB = parseFloat(valB);
+            }
+
+            if (sortField === "record_date") {
+                valA = new Date(valA);
+                valB = new Date(valB);
+            }
+
+            if (valA < valB) return ascending ? -1 : 1;
+            if (valA > valB) return ascending ? 1 : -1;
+
+            return 0;
+        });
+
+        let output = "";
+
+        filteredData.forEach(function(item) {
+            output += `
+                <tr>
+                    <td>${item.record_date}</td>
+                    <td>${item.security_desc}</td>
+                    <td>${item.avg_interest_rate_amt}%</td>
+                </tr>
+            `;
+        });
+
+        document.getElementById("output").innerHTML = output;
+    }
+
+    document
+        .getElementById("searchInput")
+        .addEventListener("input", renderData);
+
+    document
+        .getElementById("sortSelect")
+        .addEventListener("change", renderData);
+
+    document
+        .getElementById("sortDirectionBtn")
+        .addEventListener("click", function() {
+
+            ascending = !ascending;
+
+            this.textContent = ascending
+                ? "Ascending"
+                : "Descending";
+
+            renderData();
         });
 </script>
+
+</body>
 </html>
